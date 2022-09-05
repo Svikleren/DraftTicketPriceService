@@ -5,7 +5,12 @@ import com.travel.ticket.dto.DraftTicketPriceRequestDto;
 import com.travel.ticket.dto.DraftTicketPriceResponseDto;
 import com.travel.ticket.dto.PassengerDto;
 import com.travel.ticket.dto.TicketDto;
+import com.travel.ticket.external.CurrentVatService;
+import com.travel.ticket.external.TicketBasePriceService;
+import lombok.AllArgsConstructor;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -15,11 +20,15 @@ import static com.travel.ticket.constants.Constants.CHILD_TICKET_DISCOUNT;
 import static com.travel.ticket.constants.Constants.LUGGAGE_TICKET_PRICE;
 
 @Service
-public class PriceCalculationService {
+@AllArgsConstructor
+public class DraftTicketPriceCalculationService {
+
+    private final TicketBasePriceService ticketBasePriceService; //todo
+    private final CurrentVatService currentVatService; //todo
 
     public DraftTicketPriceResponseDto getAllTicketDraftPrice(DraftTicketPriceRequestDto request) {
         String route = request.getRoute();
-        BigDecimal vat = getVat();
+        BigDecimal vat = currentVatService.getVat();
 
         List<TicketDto> ticketDtoList = getAllTicketPrices(request.getPassengerDtoList(), route, vat);
 
@@ -43,7 +52,11 @@ public class PriceCalculationService {
     }
 
     private TicketDto getTicketPrice(PassengerDto passenger, String route, BigDecimal vat) {
-        BigDecimal ticketBasePrice = getBasePrice(route);
+        BigDecimal ticketBasePrice = ticketBasePriceService.getBasePrice(route);
+
+
+
+
         BigDecimal luggageCount = BigDecimal.valueOf(passenger.getLuggageCount());
 
         TicketDto ticketDto = new TicketDto();
@@ -69,12 +82,5 @@ public class PriceCalculationService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private BigDecimal getVat() {
-        return BigDecimal.valueOf(0.21);
-    } //todo
-
-    private BigDecimal getBasePrice(String route) {
-        return BigDecimal.TEN;
-    } //todo
 
 }
