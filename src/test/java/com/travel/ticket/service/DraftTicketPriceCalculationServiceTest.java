@@ -3,7 +3,7 @@ package com.travel.ticket.service;
 import com.travel.ticket.dto.DraftTicketPriceRequestDto;
 import com.travel.ticket.dto.DraftTicketPriceResponseDto;
 import com.travel.ticket.dto.PassengerDto;
-import com.travel.ticket.external.CurrentVatService;
+import com.travel.ticket.external.TaxRateService;
 import com.travel.ticket.external.TicketBasePriceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,20 +24,21 @@ class DraftTicketPriceCalculationServiceTest {
     private TicketBasePriceService ticketBasePriceService;
 
     @Mock
-    private CurrentVatService currentVatService;
+    private TaxRateService taxRateService;
 
     @InjectMocks
     private DraftTicketPriceCalculationService service;
 
     @BeforeEach
     void setUp() {
-        when(currentVatService.getVat()).thenReturn(BigDecimal.valueOf(0.21));
+        when(taxRateService.getVat()).thenReturn(BigDecimal.valueOf(0.21));
         when(ticketBasePriceService.getBasePrice(any())).thenReturn(BigDecimal.TEN);
     }
 
     @Test
     void getAllTicketDraftPrice() {
-        DraftTicketPriceRequestDto request = new DraftTicketPriceRequestDto("Vilnius");
+        DraftTicketPriceRequestDto request = new DraftTicketPriceRequestDto();
+        request.setRoute("Vilnius");
 
         PassengerDto passengerDtoAdult = new PassengerDto();
         PassengerDto passengerDtoChild = new PassengerDto();
