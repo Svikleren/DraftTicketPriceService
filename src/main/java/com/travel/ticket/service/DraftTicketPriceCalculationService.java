@@ -1,43 +1,38 @@
 package com.travel.ticket.service;
 
-import com.travel.ticket.TicketType;
-import com.travel.ticket.dto.DraftTicketPriceRequestDto;
-import com.travel.ticket.dto.DraftTicketPriceResponseDto;
-import com.travel.ticket.dto.PassengerDto;
-import com.travel.ticket.dto.TicketDto;
-import com.travel.ticket.external.CurrentVatService;
+import com.travel.ticket.common.TicketType;
+import com.travel.ticket.dto.*;
+import com.travel.ticket.external.TaxRateService;
 import com.travel.ticket.external.TicketBasePriceService;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.travel.ticket.constants.Constants.CHILD_TICKET_DISCOUNT;
-import static com.travel.ticket.constants.Constants.LUGGAGE_TICKET_PRICE;
+import static com.travel.ticket.common.Constants.CHILD_TICKET_DISCOUNT;
+import static com.travel.ticket.common.Constants.LUGGAGE_TICKET_PRICE;
 
 @Service
 @AllArgsConstructor
 public class DraftTicketPriceCalculationService {
 
     private final TicketBasePriceService ticketBasePriceService; //todo
-    private final CurrentVatService currentVatService; //todo
+    private final TaxRateService taxRateService; //todo
 
     public DraftTicketPriceResponseDto getAllTicketDraftPrice(DraftTicketPriceRequestDto request) {
         String route = request.getRoute();
-        BigDecimal vat = currentVatService.getVat();
+        BigDecimal vat = taxRateService.getVat();
 
-        List<TicketDto> ticketDtoList = getAllTicketPrices(request.getPassengerDtoList(), route, vat);
-
-        BigDecimal totalPrice = getOrderTotalPrice(ticketDtoList);
+        List<PassengerResponseDto> passengerResponseDtoList = createPassengerOrders(request.getPassengerDtoList(), route, vat);
+        BigDecimal totalPrice = getOrderTotalPrice(passengerResponseDtoList);
 
         DraftTicketPriceResponseDto response = new DraftTicketPriceResponseDto();
         response.setRoute(route);
         response.setVat(vat);
-        response.setTicketDtoList(ticketDtoList);
+        response.setPassengerDtoList(passengerResponseDtoList);
         response.setTotalOrderPrice(totalPrice);
 
         //todo builder pattern
@@ -45,40 +40,72 @@ public class DraftTicketPriceCalculationService {
         return response;
     }
 
-    private List<TicketDto> getAllTicketPrices(List<PassengerDto> passengerDtoList, String route, BigDecimal vat) {
+    private List<PassengerResponseDto> createPassengerOrders(List<PassengerDto> passengerDtoList, String route, BigDecimal vat) {
         return passengerDtoList.stream()
-                .map(passengerDto -> getTicketPrice(passengerDto, route, vat))
+                .map(passengerDto -> createPassengerOrder(passengerDto, route, vat))
                 .collect(Collectors.toList());
     }
 
-    private TicketDto getTicketPrice(PassengerDto passenger, String route, BigDecimal vat) {
+    private PassengerResponseDto createPassengerOrder(PassengerDto passengerDto, String route, BigDecimal vat) {
+        List<TicketDto> ticketDtoList = getTicketPrice(passengerDto, route, vat);
+        BigDecimal totalPrice = getPassengerOrderTotalPrice(ticketDtoList);
+
+        PassengerResponseDto passengerResponseDto = new PassengerResponseDto();
+        passengerResponseDto.setTicketDtoList(ticketDtoList);
+        passengerResponseDto.setTotalPassengerOrderPrice(totalPrice);
+
+        return passengerResponseDto;
+    }
+
+    private List<TicketDto> getTicketPrice(PassengerDto passenger, String route, BigDecimal vat) {
         BigDecimal ticketBasePrice = ticketBasePriceService.getBasePrice(route);
+        List<TicketDto> ticketDtoList = new ArrayList<>();
+        ticketDtoList.add(createPassengerTicket(ticketBasePrice, vat, passenger.isChild()));
 
+        for (int i = 1; i <= passenger.getLuggageCount(); i++) {
+            ticketDtoList.add(createLuggageTicket(ticketBasePrice, vat));
+        }
 
+        return ticketDtoList;
+    }
 
-
-        BigDecimal luggageCount = BigDecimal.valueOf(passenger.getLuggageCount());
-
-        TicketDto ticketDto = new TicketDto();
-        ticketDto.setTicketType(passenger.isChild() ? TicketType.CHILD : TicketType.ADULT);
-        ticketDto.setTicketBasePrice(ticketBasePrice);
-        ticketDto.setLuggageCount(passenger.getLuggageCount());
-
-        BigDecimal passengerTicketPriceWithoutVat = passenger.isChild() ?
+    private TicketDto createPassengerTicket(BigDecimal ticketBasePrice, BigDecimal vat, boolean isChild) {
+        BigDecimal ticketPriceWithoutVat = isChild ?
                 ticketBasePrice.multiply(CHILD_TICKET_DISCOUNT)
                 : ticketBasePrice;
+        BigDecimal ticketVat = ticketPriceWithoutVat.multiply(vat);
 
-        ticketDto.setTicketPrice(passengerTicketPriceWithoutVat.add(passengerTicketPriceWithoutVat.multiply(vat)));
-
-        BigDecimal totalLuggageTicketsPriceWithoutVat = (ticketBasePrice.multiply(LUGGAGE_TICKET_PRICE).multiply(luggageCount));
-        ticketDto.setLuggageTicketsTotalPrice(totalLuggageTicketsPriceWithoutVat.add(totalLuggageTicketsPriceWithoutVat.multiply(vat)));
+        TicketDto ticketDto = new TicketDto();
+        ticketDto.setTicketType(isChild ? TicketType.CHILD : TicketType.ADULT);
+        ticketDto.setTicketPriceWithoutVat(ticketPriceWithoutVat);
+        ticketDto.setVat(ticketVat);
+        ticketDto.setTicketTotalPrice(ticketPriceWithoutVat.add(ticketVat));
 
         return ticketDto;
     }
 
-    private BigDecimal getOrderTotalPrice(List<TicketDto> ticketDtoList) {
+    private TicketDto createLuggageTicket(BigDecimal ticketBasePrice, BigDecimal vat) {
+        BigDecimal ticketPriceWithoutVat = ticketBasePrice.multiply(LUGGAGE_TICKET_PRICE);
+        BigDecimal ticketVat = ticketPriceWithoutVat.multiply(vat);
+
+        TicketDto ticketDto = new TicketDto();
+        ticketDto.setTicketType(TicketType.LUGGAGE);
+        ticketDto.setTicketPriceWithoutVat(ticketPriceWithoutVat);
+        ticketDto.setVat(ticketVat);
+        ticketDto.setTicketTotalPrice(ticketPriceWithoutVat.add(ticketVat));
+
+        return ticketDto;
+    }
+
+    private BigDecimal getOrderTotalPrice(List<PassengerResponseDto> passengerResponseDtoList) {
+        return passengerResponseDtoList.stream()
+                .map(PassengerResponseDto::getTotalPassengerOrderPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal getPassengerOrderTotalPrice(List<TicketDto> ticketDtoList) {
         return ticketDtoList.stream()
-                .map(ticketDto -> ticketDto.getTicketPrice().add(ticketDto.getLuggageTicketsTotalPrice()))
+                .map(TicketDto::getTicketTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
