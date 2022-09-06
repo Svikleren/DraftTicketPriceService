@@ -1,4 +1,4 @@
-package com.travel.ticket.constants;
+package com.travel.ticket.common;
 
 import java.math.BigDecimal;
 
