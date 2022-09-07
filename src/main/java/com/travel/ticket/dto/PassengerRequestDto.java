@@ -1,11 +1,11 @@
 package com.travel.ticket.dto;
 
+import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
-public class PassengerDto {
+@Builder
+public class PassengerRequestDto {
 
     private int luggageCount;
     private boolean isChild;

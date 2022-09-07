@@ -2,7 +2,7 @@ package com.travel.ticket.service;
 
 import com.travel.ticket.dto.DraftTicketPriceRequestDto;
 import com.travel.ticket.dto.DraftTicketPriceResponseDto;
-import com.travel.ticket.dto.PassengerDto;
+import com.travel.ticket.dto.PassengerRequestDto;
 import com.travel.ticket.external.TaxRateService;
 import com.travel.ticket.external.TicketBasePriceService;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,12 +13,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class DraftTicketPriceCalculationServiceTest {
+class OrderDraftCalculationServiceTest {
 
     @Mock
     private TicketBasePriceService ticketBasePriceService;
@@ -27,7 +29,7 @@ class DraftTicketPriceCalculationServiceTest {
     private TaxRateService taxRateService;
 
     @InjectMocks
-    private DraftTicketPriceCalculationService service;
+    private OrderDraftCalculationService service;
 
     @BeforeEach
     void setUp() {
@@ -37,22 +39,25 @@ class DraftTicketPriceCalculationServiceTest {
 
     @Test
     void getAllTicketDraftPrice() {
-        DraftTicketPriceRequestDto request = new DraftTicketPriceRequestDto();
-        request.setRoute("Vilnius");
+        PassengerRequestDto passengerRequestDtoAdult = PassengerRequestDto.builder()
+                .luggageCount(2)
+                .isChild(false)
+                .build();
+        PassengerRequestDto passengerRequestDtoChild = PassengerRequestDto.builder()
+                .luggageCount(1)
+                .isChild(true)
+                .build();
 
-        PassengerDto passengerDtoAdult = new PassengerDto();
-        PassengerDto passengerDtoChild = new PassengerDto();
+        List<PassengerRequestDto> passengerRequestDtoList = new ArrayList<>();
+        passengerRequestDtoList.add(passengerRequestDtoAdult);
+        passengerRequestDtoList.add(passengerRequestDtoChild);
 
-        passengerDtoAdult.setLuggageCount(2);
-        passengerDtoAdult.setChild(false);
+        DraftTicketPriceRequestDto request = DraftTicketPriceRequestDto.builder()
+                .route("Vilnius")
+                .passengerRequestDtoList(passengerRequestDtoList)
+                .build();
 
-        passengerDtoChild.setLuggageCount(1);
-        passengerDtoChild.setChild(true);
-
-        request.getPassengerDtoList().add(passengerDtoAdult);
-        request.getPassengerDtoList().add(passengerDtoChild);
-
-        DraftTicketPriceResponseDto response = service.getAllTicketDraftPrice(request);
+        DraftTicketPriceResponseDto response = service.getOrderDraft(request);
         System.out.println(response);
     }
 }

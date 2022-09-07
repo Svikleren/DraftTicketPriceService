@@ -1,18 +1,18 @@
 package com.travel.ticket.dto;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
 
-import java.util.ArrayList;
+import lombok.Builder;
+import lombok.Data;
+
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 @Data
-@NoArgsConstructor
+@Builder
 public class DraftTicketPriceRequestDto {
 
-    @NonNull
+    @NotBlank(message = "Route should be provided to calculate base ticket price")
     private String route;
-    private List<PassengerDto> passengerDtoList = new ArrayList<>();
+    private List<PassengerRequestDto> passengerRequestDtoList;
 
 }
