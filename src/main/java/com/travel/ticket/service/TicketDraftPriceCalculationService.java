@@ -16,20 +16,20 @@ import static com.travel.ticket.common.Constants.LUGGAGE_TICKET_PRICE;
 @Service
 public class TicketDraftPriceCalculationService {
 
-    public List<TicketResponseDto> getTicketPrice(PassengerRequestDto passenger, BigDecimal ticketBasePrice, BigDecimal vat) {
-        int luggageCount = passenger.getLuggageCount();
-
+    public List<TicketResponseDto> getTicketPrice(PassengerRequestDto passenger,
+                                                  BigDecimal ticketBasePrice,
+                                                  BigDecimal vat) {
         List<TicketResponseDto> ticketResponseDtoList = new ArrayList<>();
-        ticketResponseDtoList.add(createPassengerTicket(ticketBasePrice, vat, passenger.isChild()));
 
-        if (luggageCount > 0) {
-            ticketResponseDtoList.addAll(createLuggageTickets(ticketBasePrice, vat, luggageCount));
-        }
+        ticketResponseDtoList.add(createPassengerTicket(ticketBasePrice, vat, passenger.isChild()));
+        ticketResponseDtoList.addAll(createLuggageTickets(ticketBasePrice, vat, passenger.getLuggageCount()));
 
         return ticketResponseDtoList;
     }
 
-    private TicketResponseDto createPassengerTicket(BigDecimal ticketBasePrice, BigDecimal vat, boolean isChild) {
+    private TicketResponseDto createPassengerTicket(BigDecimal ticketBasePrice,
+                                                    BigDecimal vat,
+                                                    boolean isChild) {
         BigDecimal ticketPriceWithoutVat = isChild ?
                 ticketBasePrice.multiply(CHILD_TICKET_DISCOUNT)
                 : ticketBasePrice;
@@ -37,7 +37,9 @@ public class TicketDraftPriceCalculationService {
         return createTicket(ticketPriceWithoutVat, isChild ? TicketType.CHILD : TicketType.ADULT, vat);
     }
 
-    private List<TicketResponseDto> createLuggageTickets(BigDecimal ticketBasePrice, BigDecimal vat, int luggageCount) {
+    private List<TicketResponseDto> createLuggageTickets(BigDecimal ticketBasePrice,
+                                                         BigDecimal vat,
+                                                         int luggageCount) {
         BigDecimal ticketPriceWithoutVat = ticketBasePrice.multiply(LUGGAGE_TICKET_PRICE);
 
         List<TicketResponseDto> luggageTickets = new ArrayList<>();
@@ -47,7 +49,9 @@ public class TicketDraftPriceCalculationService {
         return luggageTickets;
     }
 
-    private TicketResponseDto createTicket(BigDecimal ticketPriceWithoutVat, TicketType ticketType, BigDecimal vat) {
+    private TicketResponseDto createTicket(BigDecimal ticketPriceWithoutVat,
+                                           TicketType ticketType,
+                                           BigDecimal vat) {
         BigDecimal ticketVat = ticketPriceWithoutVat.multiply(vat);
 
         return TicketResponseDto.builder()

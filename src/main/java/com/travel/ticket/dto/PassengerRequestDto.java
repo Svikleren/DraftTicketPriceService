@@ -11,5 +11,6 @@ public class PassengerRequestDto {
 
     @Min(value = 0, message = "Luggage count can't be negative value")
     private int luggageCount;
+
     private boolean isChild;
 }

@@ -1,10 +1,10 @@
 package com.travel.ticket.service;
 
+import com.travel.ticket.api.TaxRateApiAdapter;
+import com.travel.ticket.api.TicketBasePriceApiAdapter;
 import com.travel.ticket.dto.DraftTicketPriceRequestDto;
 import com.travel.ticket.dto.DraftTicketPriceResponseDto;
 import com.travel.ticket.dto.PassengerRequestDto;
-import com.travel.ticket.external.TaxRateService;
-import com.travel.ticket.external.TicketBasePriceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,22 +23,22 @@ import static org.mockito.Mockito.when;
 class OrderDraftCalculationServiceTest {
 
     @Mock
-    private TicketBasePriceService ticketBasePriceService;
+    private TicketBasePriceApiAdapter ticketBasePriceApiAdapter;
 
     @Mock
-    private TaxRateService taxRateService;
+    private TaxRateApiAdapter taxRateApiAdapter;
 
     @InjectMocks
     private OrderDraftCalculationService service;
 
     @BeforeEach
     void setUp() {
-        when(taxRateService.getVat()).thenReturn(BigDecimal.valueOf(0.21));
-        when(ticketBasePriceService.getBasePrice(any())).thenReturn(BigDecimal.TEN);
+        when(taxRateApiAdapter.getVat()).thenReturn(BigDecimal.valueOf(0.21));
+        when(ticketBasePriceApiAdapter.getBasePrice(any())).thenReturn(BigDecimal.TEN);
     }
 
     @Test
-    void getAllTicketDraftPrice() {
+    void getOrderDraft() {
         PassengerRequestDto passengerRequestDtoAdult = PassengerRequestDto.builder()
                 .luggageCount(2)
                 .isChild(false)

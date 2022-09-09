@@ -16,8 +16,8 @@ public class DraftTicketPriceRequestDto {
     @NotBlank(message = "Route should be provided to calculate base ticket price")
     private String route;
 
-    @Size(min = 1, message = "Please provide data about at least one passenger to proceed with draft ticket price calculation")
     @Valid
+    @Size(min = 1, message = "Data about at least one passenger needed to proceed with draft ticket price calculation")
     private List<PassengerRequestDto> passengerRequestDtoList;
 
 }

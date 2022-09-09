@@ -1,8 +1,8 @@
 package com.travel.ticket.service;
 
+import com.travel.ticket.api.TaxRateApiAdapter;
+import com.travel.ticket.api.TicketBasePriceApiAdapter;
 import com.travel.ticket.dto.*;
-import com.travel.ticket.external.TaxRateService;
-import com.travel.ticket.external.TicketBasePriceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,13 +14,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderDraftCalculationService {
 
-    private final TicketBasePriceService ticketBasePriceService; //todo
+    private final TicketBasePriceApiAdapter ticketBasePriceApiAdapter;
     private final TicketDraftPriceCalculationService ticketDraftPriceCalculationService;
-    private final TaxRateService taxRateService; //todo
+    private final TaxRateApiAdapter taxRateApiAdapter;
 
     public DraftTicketPriceResponseDto getOrderDraft(DraftTicketPriceRequestDto request) {
         String route = request.getRoute();
-        BigDecimal vat = taxRateService.getVat();
+        BigDecimal vat = taxRateApiAdapter.getVat();
 
         List<PassengerResponseDto> passengerResponseDtoList =
                 createPassengersOrders(request.getPassengerRequestDtoList(), route, vat);
@@ -37,7 +37,7 @@ public class OrderDraftCalculationService {
     private List<PassengerResponseDto> createPassengersOrders(List<PassengerRequestDto> passengerRequestDtoList,
                                                               String route,
                                                               BigDecimal vat) {
-        BigDecimal ticketBasePrice = ticketBasePriceService.getBasePrice(route);
+        BigDecimal ticketBasePrice = ticketBasePriceApiAdapter.getBasePrice(route);
         return passengerRequestDtoList.stream()
                 .map(passengerRequestDto -> createPassengerOrder(passengerRequestDto, ticketBasePrice, vat))
                 .collect(Collectors.toList());
@@ -46,7 +46,8 @@ public class OrderDraftCalculationService {
     private PassengerResponseDto createPassengerOrder(PassengerRequestDto passengerRequestDto,
                                                       BigDecimal ticketBasePrice,
                                                       BigDecimal vat) {
-        List<TicketResponseDto> ticketResponseDtoList = ticketDraftPriceCalculationService.getTicketPrice(passengerRequestDto, ticketBasePrice, vat);
+        List<TicketResponseDto> ticketResponseDtoList =
+                ticketDraftPriceCalculationService.getTicketPrice(passengerRequestDto, ticketBasePrice, vat);
 
         return PassengerResponseDto.builder()
                 .ticketResponseDtoList(ticketResponseDtoList)

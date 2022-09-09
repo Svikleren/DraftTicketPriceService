@@ -1,0 +1,10 @@
+logging:
+  level:
+    com.travel.ticket: DEBUG
+    ROOT: INFO
+
+baseprice:
+  url: http://localhost:8080/get-base-ticket-price/
+
+vat:
+  url: http://localhost:8080/get-current-vat/
