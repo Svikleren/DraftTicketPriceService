@@ -10,6 +10,14 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * OrderDraftCalculationService class:
+ * - requests necessary information from external services (VAT and ticket base price)
+ * - create draft ticket order response
+ * - creates DraftTicketPriceResponseDto with information about each provided passenger
+ * - calls TicketDraftPriceCalculationService to create each passenger tickets
+ * - calculates total price for each passenger and for whole order
+ */
 @Service
 @RequiredArgsConstructor
 public class OrderDraftCalculationService {
@@ -47,7 +55,7 @@ public class OrderDraftCalculationService {
                                                       BigDecimal ticketBasePrice,
                                                       BigDecimal vat) {
         List<TicketResponseDto> ticketResponseDtoList =
-                ticketDraftPriceCalculationService.getTicketPrice(passengerRequestDto, ticketBasePrice, vat);
+                ticketDraftPriceCalculationService.getAllPassengerTickets(passengerRequestDto, ticketBasePrice, vat);
 
         return PassengerResponseDto.builder()
                 .ticketResponseDtoList(ticketResponseDtoList)

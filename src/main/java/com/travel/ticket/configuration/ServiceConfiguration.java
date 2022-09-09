@@ -5,6 +5,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * Common configuration to define common RestTemplate behavior for all project
+ */
 @Configuration
 public class ServiceConfiguration {
 

@@ -13,12 +13,15 @@ import java.util.stream.IntStream;
 import static com.travel.ticket.common.Constants.CHILD_TICKET_DISCOUNT;
 import static com.travel.ticket.common.Constants.LUGGAGE_TICKET_PRICE;
 
+/**
+ * TicketDraftPriceCalculationService creates all necessary tickets for one passenger (adult/child)
+ */
 @Service
 public class TicketDraftPriceCalculationService {
 
-    public List<TicketResponseDto> getTicketPrice(PassengerRequestDto passenger,
-                                                  BigDecimal ticketBasePrice,
-                                                  BigDecimal vat) {
+    public List<TicketResponseDto> getAllPassengerTickets(PassengerRequestDto passenger,
+                                                          BigDecimal ticketBasePrice,
+                                                          BigDecimal vat) {
         List<TicketResponseDto> ticketResponseDtoList = new ArrayList<>();
 
         ticketResponseDtoList.add(createPassengerTicket(ticketBasePrice, vat, passenger.isChild()));
@@ -31,7 +34,7 @@ public class TicketDraftPriceCalculationService {
                                                     BigDecimal vat,
                                                     boolean isChild) {
         BigDecimal ticketPriceWithoutVat = isChild ?
-                ticketBasePrice.multiply(CHILD_TICKET_DISCOUNT)
+                ticketBasePrice.subtract(ticketBasePrice.multiply(CHILD_TICKET_DISCOUNT))
                 : ticketBasePrice;
 
         return createTicket(ticketPriceWithoutVat, isChild ? TicketType.CHILD : TicketType.ADULT, vat);
