@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 public class TicketBasePriceApiAdapter {
 
     @Value("${baseprice.url}")
-    String basePriceUrl;
+    private String basePriceUrl;
 
     private final RestTemplate restTemplate;
 

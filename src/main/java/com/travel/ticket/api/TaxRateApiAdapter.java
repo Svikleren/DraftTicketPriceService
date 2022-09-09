@@ -17,7 +17,7 @@ import java.time.LocalDate;
 public class TaxRateApiAdapter {
 
     @Value("${vat.url}")
-    String vatUrl;
+    private String vatUrl;
 
     private final RestTemplate restTemplate;
 
