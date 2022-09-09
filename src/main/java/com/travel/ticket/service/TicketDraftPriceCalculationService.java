@@ -33,11 +33,12 @@ public class TicketDraftPriceCalculationService {
     private TicketResponseDto createPassengerTicket(BigDecimal ticketBasePrice,
                                                     BigDecimal vat,
                                                     boolean isChild) {
-        BigDecimal ticketPriceWithoutVat = isChild ?
-                ticketBasePrice.subtract(ticketBasePrice.multiply(CHILD_TICKET_DISCOUNT))
-                : ticketBasePrice;
-
-        return createTicket(ticketPriceWithoutVat, isChild ? TicketType.CHILD : TicketType.ADULT, vat);
+        if (isChild) {
+            BigDecimal childTicketPriceWithoutVat = ticketBasePrice
+                    .subtract(ticketBasePrice.multiply(CHILD_TICKET_DISCOUNT));
+            return createTicket(childTicketPriceWithoutVat, TicketType.CHILD, vat);
+        }
+        return createTicket(ticketBasePrice, TicketType.ADULT, vat);
     }
 
     private List<TicketResponseDto> createLuggageTickets(BigDecimal ticketBasePrice,

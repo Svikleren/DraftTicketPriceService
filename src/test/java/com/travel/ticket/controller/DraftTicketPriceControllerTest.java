@@ -14,14 +14,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static com.travel.ticket.common.TestConstants.ADULT_TICKET_BASE_PRICE;
+import static com.travel.ticket.common.TestConstants.VAT;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -40,14 +39,17 @@ class DraftTicketPriceControllerTest {
 
     @Test
     void getDraftTicketPrice() throws Exception {
-        when(orderDraftCalculationService.getOrderDraft(any())).thenReturn(createExpectedResponse());
+        DraftTicketPriceRequestDto requestDto = createDraftTicketPriceRequest();
+        when(orderDraftCalculationService.getOrderDraft(requestDto)).thenReturn(createExpectedResponse());
 
         mvc.perform(post("/draft-ticket-price")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createDraftTicketPriceRequest())))
+                        .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isOk())
-                .andExpect(content().string(objectMapper.writeValueAsString(createExpectedResponse())))
-                .andDo(print());
+                .andExpect(content().string(objectMapper.writeValueAsString(createExpectedResponse())));
+
+        verify(orderDraftCalculationService).getOrderDraft(requestDto);
+        verifyNoMoreInteractions(orderDraftCalculationService);
     }
 
     private DraftTicketPriceRequestDto createDraftTicketPriceRequest() {
@@ -74,8 +76,8 @@ class DraftTicketPriceControllerTest {
     private DraftTicketPriceResponseDto createExpectedResponse() {
         return DraftTicketPriceResponseDto.builder()
                 .route(route)
-                .vat(BigDecimal.valueOf(0.21))
-                .totalOrderPrice(BigDecimal.TEN)
+                .vat(VAT)
+                .totalOrderPrice(ADULT_TICKET_BASE_PRICE)
                 .build();
     }
 }

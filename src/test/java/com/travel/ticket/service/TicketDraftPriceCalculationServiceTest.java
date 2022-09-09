@@ -9,6 +9,8 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.travel.ticket.common.TestConstants.ADULT_TICKET_BASE_PRICE;
+import static com.travel.ticket.common.TestConstants.VAT;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 class TicketDraftPriceCalculationServiceTest {
@@ -17,16 +19,15 @@ class TicketDraftPriceCalculationServiceTest {
 
     @Test
     void getTicketPrice_AdultAndLuggage() {
-        BigDecimal adultTicketBasePrice = BigDecimal.TEN;
+        BigDecimal adultTicketBasePrice = ADULT_TICKET_BASE_PRICE;
         BigDecimal luggageTicketBasePrice = adultTicketBasePrice.multiply(BigDecimal.valueOf(0.3));
-        BigDecimal vat = BigDecimal.valueOf(0.21);
 
         List<TicketResponseDto> ticketResponseDtoList =
-                ticketCalculationService.getAllPassengerTickets(createPassengerRequest(false), adultTicketBasePrice, vat);
+                ticketCalculationService.getAllPassengerTickets(createPassengerRequest(false), adultTicketBasePrice, VAT);
 
         List<TicketResponseDto> expectedTicketsList = Arrays.asList(
-                createExpectedTicketResponseDto(TicketType.ADULT, adultTicketBasePrice, adultTicketBasePrice.multiply(vat)),
-                createExpectedTicketResponseDto(TicketType.LUGGAGE, luggageTicketBasePrice, luggageTicketBasePrice.multiply(vat))
+                createExpectedTicketResponseDto(TicketType.ADULT, adultTicketBasePrice, adultTicketBasePrice.multiply(VAT)),
+                createExpectedTicketResponseDto(TicketType.LUGGAGE, luggageTicketBasePrice, luggageTicketBasePrice.multiply(VAT))
         );
 
         assertThat(ticketResponseDtoList).usingRecursiveComparison()
@@ -35,17 +36,16 @@ class TicketDraftPriceCalculationServiceTest {
 
     @Test
     void getTicketPrice_ChildAndLuggage() {
-        BigDecimal adultTicketBasePrice = BigDecimal.TEN;
+        BigDecimal adultTicketBasePrice = ADULT_TICKET_BASE_PRICE;
         BigDecimal childTicketBasePrice = adultTicketBasePrice.multiply(BigDecimal.valueOf(0.5));
         BigDecimal luggageTicketBasePrice = adultTicketBasePrice.multiply(BigDecimal.valueOf(0.3));
-        BigDecimal vat = BigDecimal.valueOf(0.21);
 
         List<TicketResponseDto> ticketResponseDtoList =
-                ticketCalculationService.getAllPassengerTickets(createPassengerRequest(true), adultTicketBasePrice, vat);
+                ticketCalculationService.getAllPassengerTickets(createPassengerRequest(true), adultTicketBasePrice, VAT);
 
         List<TicketResponseDto> expectedTicketsList = Arrays.asList(
-                createExpectedTicketResponseDto(TicketType.CHILD, childTicketBasePrice, childTicketBasePrice.multiply(vat)),
-                createExpectedTicketResponseDto(TicketType.LUGGAGE, luggageTicketBasePrice, luggageTicketBasePrice.multiply(vat))
+                createExpectedTicketResponseDto(TicketType.CHILD, childTicketBasePrice, childTicketBasePrice.multiply(VAT)),
+                createExpectedTicketResponseDto(TicketType.LUGGAGE, luggageTicketBasePrice, luggageTicketBasePrice.multiply(VAT))
         );
 
         assertThat(ticketResponseDtoList).usingRecursiveComparison()

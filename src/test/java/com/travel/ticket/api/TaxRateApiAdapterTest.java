@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
 
+import static com.travel.ticket.common.TestConstants.VAT;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -36,11 +37,11 @@ class TaxRateApiAdapterTest {
         LocalDate today = LocalDate.now();
 
         when(restTemplate.getForEntity(anyString(), eq(BigDecimal.class)))
-                .thenReturn(ResponseEntity.of(Optional.of(BigDecimal.valueOf(0.21))));
+                .thenReturn(ResponseEntity.of(Optional.of(VAT)));
 
         BigDecimal vat = taxRateApiAdapter.getVat();
 
-        assertThat(vat).isEqualTo(BigDecimal.valueOf(0.21));
+        assertThat(vat).isEqualTo(VAT);
         verify(restTemplate).getForEntity(urlCaptor.capture(), eq(BigDecimal.class));
         assertThat(urlCaptor.getValue()).contains(today.toString());
         verifyNoMoreInteractions(restTemplate);

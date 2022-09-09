@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.travel.ticket.common.TestConstants.ADULT_TICKET_BASE_PRICE;
+import static com.travel.ticket.common.TestConstants.VAT;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -39,37 +41,36 @@ class OrderDraftCalculationServiceTest {
 
     @BeforeEach
     void setUp() {
-        when(taxRateApiAdapter.getVat()).thenReturn(BigDecimal.valueOf(0.21));
-        when(ticketBasePriceApiAdapter.getBasePrice(route)).thenReturn(BigDecimal.TEN);
+        when(taxRateApiAdapter.getVat()).thenReturn(VAT);
+        when(ticketBasePriceApiAdapter.getBasePrice(route)).thenReturn(ADULT_TICKET_BASE_PRICE);
     }
 
     @Test
     void getOrderDraft() {
-
         List<TicketResponseDto> ticketsForAdult = new ArrayList<>();
-        ticketsForAdult.add(createExpectedTicketResponseDto(TicketType.ADULT));
-        ticketsForAdult.add(createExpectedTicketResponseDto(TicketType.LUGGAGE));
+        ticketsForAdult.add(createExpectedTicketResponseDto(TicketType.ADULT, ADULT_TICKET_BASE_PRICE, BigDecimal.valueOf(2.10)));
+        ticketsForAdult.add(createExpectedTicketResponseDto(TicketType.LUGGAGE, BigDecimal.valueOf(3), BigDecimal.valueOf(0.63)));
 
         List<TicketResponseDto> ticketsForChild = new ArrayList<>();
-        ticketsForChild.add(createExpectedTicketResponseDto(TicketType.CHILD));
+        ticketsForChild.add(createExpectedTicketResponseDto(TicketType.CHILD, BigDecimal.valueOf(5), BigDecimal.valueOf(1.05)));
 
         DraftTicketPriceRequestDto requestDto = createDraftTicketPriceRequest();
 
         when(ticketDraftPriceCalculationService.getAllPassengerTickets(
-                eq(requestDto.getPassengerRequestDtoList().get(0)), eq(BigDecimal.TEN), eq(BigDecimal.valueOf(0.21))))
+                eq(requestDto.getPassengerRequestDtoList().get(0)), eq(ADULT_TICKET_BASE_PRICE), eq(VAT)))
                 .thenReturn(ticketsForAdult);
 
         when(ticketDraftPriceCalculationService.getAllPassengerTickets(
-                eq(requestDto.getPassengerRequestDtoList().get(1)), eq(BigDecimal.TEN), eq(BigDecimal.valueOf(0.21))))
+                eq(requestDto.getPassengerRequestDtoList().get(1)), eq(ADULT_TICKET_BASE_PRICE), eq(VAT)))
                 .thenReturn(ticketsForChild);
 
         DraftTicketPriceResponseDto response = service.getOrderDraft(requestDto);
 
-        DraftTicketPriceResponseDto expectedResponse = createExpectedResponse(BigDecimal.valueOf(36.30));
+        DraftTicketPriceResponseDto expectedResponse = createExpectedResponse(BigDecimal.valueOf(21.78));
         expectedResponse.setPassengerDtoList(
                 Arrays.asList(
-                        createExpectedPassenger(ticketsForAdult, BigDecimal.valueOf(24.20)),
-                        createExpectedPassenger(ticketsForChild, BigDecimal.valueOf(12.10))
+                        createExpectedPassenger(ticketsForAdult, BigDecimal.valueOf(15.73)),
+                        createExpectedPassenger(ticketsForChild, BigDecimal.valueOf(6.05))
                 ));
 
         assertThat(response).usingRecursiveComparison()
@@ -80,10 +81,10 @@ class OrderDraftCalculationServiceTest {
         verify(ticketBasePriceApiAdapter).getBasePrice(route);
 
         verify(ticketDraftPriceCalculationService).getAllPassengerTickets(
-                eq(requestDto.getPassengerRequestDtoList().get(0)), eq(BigDecimal.TEN), eq(BigDecimal.valueOf(0.21)));
+                eq(requestDto.getPassengerRequestDtoList().get(0)), eq(ADULT_TICKET_BASE_PRICE), eq(VAT));
 
         verify(ticketDraftPriceCalculationService).getAllPassengerTickets(
-                eq(requestDto.getPassengerRequestDtoList().get(1)), eq(BigDecimal.TEN), eq(BigDecimal.valueOf(0.21)));
+                eq(requestDto.getPassengerRequestDtoList().get(1)), eq(ADULT_TICKET_BASE_PRICE), eq(VAT));
 
         verifyNoMoreInteractions(taxRateApiAdapter, ticketBasePriceApiAdapter, ticketDraftPriceCalculationService);
     }
@@ -112,7 +113,7 @@ class OrderDraftCalculationServiceTest {
     private DraftTicketPriceResponseDto createExpectedResponse(BigDecimal totalOrderPrice) {
         return DraftTicketPriceResponseDto.builder()
                 .route(route)
-                .vat(BigDecimal.valueOf(0.21))
+                .vat(VAT)
                 .totalOrderPrice(totalOrderPrice)
                 .build();
     }
@@ -124,12 +125,14 @@ class OrderDraftCalculationServiceTest {
                 .build();
     }
 
-    private TicketResponseDto createExpectedTicketResponseDto(TicketType ticketType) {
+    private TicketResponseDto createExpectedTicketResponseDto(TicketType ticketType,
+                                                              BigDecimal ticketPrice,
+                                                              BigDecimal ticketVat) {
         return TicketResponseDto.builder()
                 .ticketType(ticketType)
-                .ticketPriceWithoutVat(BigDecimal.TEN)
-                .vat(BigDecimal.valueOf(2.10))
-                .ticketTotalPrice(BigDecimal.valueOf(12.10))
+                .ticketPriceWithoutVat(ticketPrice)
+                .vat(ticketVat)
+                .ticketTotalPrice(ticketPrice.add(ticketVat))
                 .build();
     }
 }

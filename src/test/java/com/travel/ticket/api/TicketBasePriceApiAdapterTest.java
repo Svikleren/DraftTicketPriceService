@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.util.Optional;
 
+import static com.travel.ticket.common.TestConstants.ADULT_TICKET_BASE_PRICE;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -35,11 +36,11 @@ class TicketBasePriceApiAdapterTest {
         String route = "Route";
 
         when(restTemplate.getForEntity(anyString(), eq(BigDecimal.class)))
-                .thenReturn(ResponseEntity.of(Optional.of(BigDecimal.TEN)));
+                .thenReturn(ResponseEntity.of(Optional.of(ADULT_TICKET_BASE_PRICE)));
 
         BigDecimal vat = ticketBasePriceApiAdapter.getBasePrice(route);
 
-        assertThat(vat).isEqualTo(BigDecimal.TEN);
+        assertThat(vat).isEqualTo(ADULT_TICKET_BASE_PRICE);
         verify(restTemplate).getForEntity(urlCaptor.capture(), eq(BigDecimal.class));
         assertThat(urlCaptor.getValue()).contains(route);
         verifyNoMoreInteractions(restTemplate);

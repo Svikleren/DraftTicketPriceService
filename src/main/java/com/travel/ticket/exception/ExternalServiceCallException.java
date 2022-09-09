@@ -10,12 +10,10 @@ import java.io.IOException;
 @Setter
 public class ExternalServiceCallException extends IOException {
 
-    HttpStatus errorStatus;
-    String message;
+    private HttpStatus errorStatus;
 
     public ExternalServiceCallException(HttpStatus errorStatus, String message) {
         super(message);
         this.errorStatus = errorStatus;
-        this.message = message;
     }
 }
